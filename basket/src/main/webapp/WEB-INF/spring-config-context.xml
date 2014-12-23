@@ -21,8 +21,8 @@
     </bean>
 
     <!-- the service we want to make cacheable -->
-    <bean id="rankingService" class="be.chiroelzestraat.services.RankingServiceImpl"/>
-    <bean id="gameService" class="be.chiroelzestraat.services.GameServiceImpl"/>
+    <bean id="rankingService" class="be.sandervl.services.RankingServiceImpl"/>
+    <bean id="gameService" class="be.sandervl.services.GameServiceImpl"/>
 
     <!-- cache definitions -->
     <cache:advice id="cacheAdvice" cache-manager="cacheManager">
