@@ -50,7 +50,7 @@ public class RankingServiceImpl implements RankingService {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
         return result;
     }

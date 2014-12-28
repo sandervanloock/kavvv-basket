@@ -63,9 +63,9 @@ public class GameServiceImpl implements GameService {
             Collections.sort(gamesForDate, new GameComparator());
             return gamesForDate;
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         } catch (ParseException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
         return new ArrayList<Game>();
     }
@@ -160,9 +160,9 @@ public class GameServiceImpl implements GameService {
                 }
                 games.add(game);
             } catch (ParseException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             } catch (NumberFormatException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         }
     }
