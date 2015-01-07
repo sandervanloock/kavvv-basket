@@ -11,9 +11,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import javax.cache.annotation.CacheResult;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -27,14 +27,14 @@ public class GameServiceImpl implements GameService {
     DateFormat formatter2 = new SimpleDateFormat("dd/MM/yyyy");
 
     @Override
-    @CacheResult(cacheName= "gameCache")
+    @Cacheable("gameCache")
     public List<Game> getGames() {
         List<Game> result = new ArrayList<Game>();
         try {
             Map<String, String> postData = initializePostData();
             for (int weekend = 1; weekend <= 37; weekend++) {
-                postData.put("ctl00$MainContent$cboWeekend",Integer.toString(weekend));
-                result = getGamesForDate(postData, weekend);
+                postData.put("ctl00$MainContent$cboWeekend", Integer.toString(weekend));
+                result.addAll(getGamesForDate(postData, weekend));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -44,14 +44,15 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    @CacheResult(cacheName= "gameCache")
+    @Cacheable("gameCache")
     public List<Game> getSpecificGames(Date date, Ranking.Type type) {
+        simulateSlowService();
         try {
             List<Game> gamesForDate;
             if (date != null) {
                 int weekend = getDateValue(date);
                 Map<String, String> postData = initializePostData();
-                postData.put("ctl00$MainContent$cboWeekend",Integer.toString(weekend));
+                postData.put("ctl00$MainContent$cboWeekend", Integer.toString(weekend));
                 gamesForDate = getGamesForDate(postData, weekend);
                 gamesForDate = new ArrayList<Game>(CollectionUtils.findAll(gamesForDate, new GameDateChecker(date)));
             } else {
@@ -68,6 +69,17 @@ public class GameServiceImpl implements GameService {
 //            e.printStackTrace();
         }
         return new ArrayList<Game>();
+    }
+
+    // Don't do this at home
+    private void simulateSlowService() {
+        System.out.println("execute");
+//        try {
+//            long time = (long) (5000L);
+//            Thread.sleep(time);
+//        } catch (InterruptedException e) {
+//            throw new IllegalStateException(e);
+//        }
     }
 
     private Map<String, String> initializePostData() throws IOException {
@@ -142,20 +154,20 @@ public class GameServiceImpl implements GameService {
                 String team2 = cells.get(3).select("span").get(0).html();
                 game.setTeam2(team2);
                 String score1String = cells.get(4).select("span").get(0).html();
-                if(!score1String.isEmpty()){
+                if (!score1String.isEmpty()) {
                     int score1 = Integer.parseInt(score1String);
                     game.setScore1(score1);
                 }
                 String score2String = cells.get(6).select("span").get(0).html();
-                if(!score2String.isEmpty()){
+                if (!score2String.isEmpty()) {
                     int score2 = Integer.parseInt(score2String);
                     game.setScore2(score2);
                 }
-                if(score1String.isEmpty()&&score2String.isEmpty()){
+                if (score1String.isEmpty() && score2String.isEmpty()) {
                     game.setFuture(true);
                 }
                 String canceledString = cells.get(7).select("span").get(0).html();
-                if(!canceledString.isEmpty()){
+                if (!canceledString.isEmpty()) {
                     game.setCanceled(true);
                 }
                 games.add(game);
