@@ -36,7 +36,7 @@ public class TestGameService {
         Date expectedDate = formatter.parse("31/10/2014 21:15:07");
         Ranking.Type expectedType = Ranking.Type.HEREN_3B;
 
-        List<Game> actualGames = gameService.getSpecificGames(expectedDate, expectedType);
+        List<Game> actualGames = gameService.getSpecificGames(expectedDate,expectedType);
 
         Assert.assertNotNull(actualGames);
         for(Game game: actualGames){

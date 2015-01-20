@@ -46,7 +46,6 @@ public class GameServiceImpl implements GameService {
     @Override
     @Cacheable("gameCache")
     public List<Game> getSpecificGames(Date date, Ranking.Type type) {
-        simulateSlowService();
         try {
             List<Game> gamesForDate;
             if (date != null) {
@@ -69,17 +68,6 @@ public class GameServiceImpl implements GameService {
 //            e.printStackTrace();
         }
         return new ArrayList<Game>();
-    }
-
-    // Don't do this at home
-    private void simulateSlowService() {
-        System.out.println("execute");
-//        try {
-//            long time = (long) (5000L);
-//            Thread.sleep(time);
-//        } catch (InterruptedException e) {
-//            throw new IllegalStateException(e);
-//        }
     }
 
     private Map<String, String> initializePostData() throws IOException {
