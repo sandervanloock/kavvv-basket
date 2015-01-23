@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<project name="Resto Execute Deploy" basedir="../">
+
+    <property name="deploy.dir" value="/home/sander/deploy"/>
+    <property name="ssh.username" value="sander"/>
+    <property name="ssh.keyfile" value="${basedir}/scripts/private-key.key"/>
+    <property name="ssh.passphrase" value=""/>
+    <property name="host.ip" value="128.199.47.215"/>
+
+
+    <path id="classpath">
+        <fileset dir="${basedir}/scripts" includes="**/*.jar"/>
+    </path>
+
+    <target name="deploy.basket">
+        <antcall target="deploy.basket.front"/>
+        <antcall target="deploy.basket.api"/>
+    </target>
+
+    <target name="deploy.basket.front">
+        <antcall target="zip.front"/>
+        <antcall target="prepare.deploy.sandervl.front"/>
+        <antcall target="deploy.sandervl.front.remote"/>
+    </target>
+
+    <target name="zip.front" description="Puts front content zip for deploy in production">
+        <zip destfile="${basedir}/basket.front/target/static.zip">
+            <fileset dir="${basedir}/basket.front/app">
+                <include name="**/*"/>
+                <exclude name="pom.xml"/>
+                <exclude name="static.iml"/>
+                <exclude name="**/.sass-cache/**"/>
+                <exclude name="**/scss/**"/>
+                <exclude name="**/target/**"/>
+                <exclude name="**/dummies/**"/>
+                <exclude name="**/translations/**"/>
+            </fileset>
+        </zip>
+    </target>
+
+    <target name="prepare.deploy.sandervl.front" description="Puts front content zip for deploy in production">
+        <scp todir="${ssh.username}@${host.ip}:${deploy.dir}" keyfile="${ssh.keyfile}" passphrase="${ssh.passphrase}" trust="yes">
+            <fileset dir="${basedir}/basket.front/target">
+                <include name="static.zip"/>
+            </fileset>
+            <fileset dir="${basedir}/scripts">
+                <include name="deploy_ssh.xml"/>
+                <include name="production.properties"/>
+            </fileset>
+        </scp>
+    </target>
+
+    <target name="deploy.sandervl.front.remote">
+        <deploy-remote dns="${host.ip}" target="deploy.sandervl.front"/>
+    </target>
+
+    <target name="deploy.basket.api">
+        <antcall target="prepare.deploy.sandervl.basket"/>
+        <antcall target="deploy.sandervl.basket.remote"/>
+    </target>
+
+    <target name="prepare.deploy.sandervl.basket" description="Copy basket war to production">
+        <upload-war dir="${basedir}/basket/target" dns="${host.ip}" package="basket.war"/>
+    </target>
+
+    <target name="deploy.sandervl.basket.remote">
+        <deploy-remote dns="${host.ip}" target="deploy.sandervl.basket"/>
+    </target>
+
+    <macrodef name="deploy-remote">
+        <attribute name="dns"/>
+        <attribute name="target"/>
+        <sequential>
+            <property name="uploadDir" value="${deploy.dir}"/>
+            <sshexec host="@{dns}" username="${ssh.username}" passphrase="${ssh.passphrase}" trust="yes"
+                     keyfile="${ssh.keyfile}" timeout="300000"
+                     command="cd ${uploadDir} &amp;&amp;
+			                  ant -buildfile deploy_ssh.xml @{target}
+			                  "/>
+            <scp todir="${ssh.username}@${host.ip}:${deploy.dir}" keyfile="${ssh.keyfile}" passphrase="${ssh.passphrase}" trust="yes">
+                <fileset dir="${basedir}/scripts">
+                    <include name="deploy_ssh.xml"/>
+                    <include name="production.properties"/>
+                </fileset>
+            </scp>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="upload-war">
+        <attribute name="dir"/>
+        <attribute name="dns"/>
+        <attribute name="package"/>
+        <sequential>
+
+            <property name="uploadDir" value="${deploy.dir}"/>
+            <echo> About to upload package @{dir}/@{package} to ${ssh.username}@@@{dns}:${uploadDir} </echo>
+            <sshexec host="@{dns}" username="${ssh.username}" passphrase="${ssh.passphrase}" trust="yes"
+                     keyfile="${ssh.keyfile}" timeout="90000" command="mkdir -p ${uploadDir}"/>
+
+            <scp todir="${ssh.username}@@@{dns}:${uploadDir}" keyfile="${ssh.keyfile}" passphrase="${ssh.passphrase}"
+                 trust="yes">
+                <fileset dir="@{dir}">
+                    <include name="@{package}"/>
+                </fileset>
+                <fileset dir="${basedir}/scripts">
+                    <include name="deploy_ssh.xml"/>
+                </fileset>
+            </scp>
+
+        </sequential>
+    </macrodef>
+
+</project>
