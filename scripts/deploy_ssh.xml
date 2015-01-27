@@ -10,18 +10,12 @@
     <fail unless="properties.present">properties file not found: ${environment}.properties</fail>
     <property file="${basedir}/${environment}.properties"/>
 
-    <property name="host.ip" value="128.199.47.215:8080"/>
-
-    <tstamp>
-        <format property="today" pattern="yyyy-MM-dd.HH'h'mm" locale="en,UK"/>
-    </tstamp>
-
     <target name="deploy.sandervl.front">
         <unzip src="${basedir}/static.zip" dest="/var/www/webapps/front"/>
     </target>
 
     <target name="deploy.sandervl.basket">
-        <deploy-war dns="${host.ip}" package="basket" path="/basket" />
+        <deploy-war dns="${host.ip}:${host.port}" package="basket" path="/basket" />
     </target>
 
     <macrodef name="deploy-war">
@@ -29,8 +23,6 @@
         <attribute name="package" />
         <attribute name="path" default="/"/>
         <sequential>
-            <echo>Undeploy Url - http://@{dns}/manager/text</echo>
-
             <undeploy url="http://@{dns}/manager/text" username="${tomcat.username}" password="${tomcat.password}"
                       path="@{path}" failonerror="false"/>
 

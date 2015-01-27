@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <project name="Resto Execute Deploy" basedir="../">
 
-    <property name="deploy.dir" value="/home/sander/deploy"/>
-    <property name="ssh.username" value="sander"/>
-    <property name="ssh.keyfile" value="${basedir}/scripts/private-key.key"/>
-    <property name="ssh.passphrase" value=""/>
-    <property name="host.ip" value="128.199.47.215"/>
-
+    <property name="environment" value="production"/>
+    <fail unless="environment">environment not set</fail>
+    <available file="${basedir}/scripts/${environment}.properties" property="properties.present"/>
+    <fail unless="properties.present">properties file not found: ${environment}.properties</fail>
+    <property file="${basedir}/scripts/${environment}.properties"/>
 
     <path id="classpath">
         <fileset dir="${basedir}/scripts" includes="**/*.jar"/>
@@ -77,12 +76,6 @@
                      command="cd ${uploadDir} &amp;&amp;
 			                  ant -buildfile deploy_ssh.xml @{target}
 			                  "/>
-            <scp todir="${ssh.username}@${host.ip}:${deploy.dir}" keyfile="${ssh.keyfile}" passphrase="${ssh.passphrase}" trust="yes">
-                <fileset dir="${basedir}/scripts">
-                    <include name="deploy_ssh.xml"/>
-                    <include name="production.properties"/>
-                </fileset>
-            </scp>
         </sequential>
     </macrodef>
 
@@ -104,6 +97,7 @@
                 </fileset>
                 <fileset dir="${basedir}/scripts">
                     <include name="deploy_ssh.xml"/>
+                    <include name="production.properties"/>
                 </fileset>
             </scp>
 
